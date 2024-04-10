@@ -13,16 +13,13 @@ class InvoiceController {
         }
 
         try {
-            // await data.save();
-            console.log(data);
+            await data.save();
             res.status(201).json({
                 statusCode: 201,
                 message: 'Sukses',
             });
         } catch (error) {
             console.log(error.errors);
-            res.send('Gagal');
-
         }
     };
 
@@ -32,7 +29,6 @@ class InvoiceController {
             res.status(200).json(datas);
         } catch (error) {
             console.log(error);
-
         }
     };
 }
