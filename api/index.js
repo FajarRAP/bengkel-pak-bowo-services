@@ -8,8 +8,8 @@ const app = express().use(express.json());
 
 dotenv.config();
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => { console.log("Successfully Connected to MongoDB Atlas") })
-    .catch(() => { console.log("Something Went Wrong") });
+    .then(() => { console.log("Successfully Connected to MongoDB Atlas"); })
+    .catch(() => { console.log("Something Went Wrong"); });
 const PORT = process.env.PORT;
 
 // Invoice
@@ -20,6 +20,8 @@ app.get('/invoice', invoiceController.readData);
 app.post('/register', authController.registerUser);
 app.post('/login', authController.loginUser);
 
-app.listen(PORT, () => { console.log(`Connected on Port ${PORT}`) });
+app.get('/', (req, res) => { res.send('Bengkel Pak Bowo Services'); });
+
+app.listen(PORT, () => { console.log(`Connected on Port ${PORT}`); });
 
 module.exports = app;
