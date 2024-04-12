@@ -18,6 +18,7 @@ class InvoiceController {
                 statusCode: 201,
                 message: 'Sukses',
             });
+            concole.log("Data Created");
         } catch (error) {
             console.log(error.errors);
         }
@@ -27,6 +28,7 @@ class InvoiceController {
         try {
             const datas = await invoiceModel.find();
             res.status(200).json(datas);
+            console.log(`Data Readed ${Date.now()}`);
         } catch (error) {
             console.log(error);
         }

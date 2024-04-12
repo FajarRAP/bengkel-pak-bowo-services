@@ -8,7 +8,7 @@ const app = express().use(express.json());
 
 dotenv.config();
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => { console.log("Successfully Connected") })
+    .then(() => { console.log("Successfully Connected to MongoDB Atlas") })
     .catch(() => { console.log("Something Went Wrong") });
 const PORT = process.env.PORT;
 
