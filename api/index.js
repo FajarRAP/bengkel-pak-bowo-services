@@ -1,8 +1,8 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const mongoose = require('mongoose');
-const invoiceController = require('./controller/invoice');
-const authController = require("./controller/auth");
+const invoiceController = require('../controller/invoice');
+const authController = require("../controller/auth");
 
 const app = express().use(express.json());
 
@@ -21,3 +21,5 @@ app.post('/register', authController.registerUser);
 app.post('/login', authController.loginUser);
 
 app.listen(PORT, () => { console.log(`Connected on Port ${PORT}`) });
+
+module.exports = app;
