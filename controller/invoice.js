@@ -4,10 +4,10 @@ class InvoiceController {
     createData = async (req, res) => {
         const data = new invoiceModel(req.body);
 
-        if (data.barangs.length == 0) {
+        if (data.services.length == 0) {
             res.status(400).json({
                 statusCode: 400,
-                message: 'Barang Tidak Boleh Kosong',
+                message: 'Jasa Tidak Boleh Kosong',
             });
             return;
         }

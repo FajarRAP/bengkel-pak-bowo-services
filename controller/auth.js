@@ -27,18 +27,18 @@ class AuthController {
         const { email, password } = req.body;
         const user = await userModel.findOne({ email: email });
         if (!user) {
-            res.status(404).json({ "message": "Akun Tidak Terdaftar" });
+            return res.status(404).json({ "message": "Akun Tidak Terdaftar" });
         }
 
         try {
             const comparePassword = await bcrypt.compare(password, user.password);
             if (comparePassword) {
-                res.status(200).json({ "message": "Login Berhasil" });
+                return res.status(200).json({ "message": "Login Berhasil" });
             } else {
-                res.status(400).json({ "message": "Email atau Password Salah" });
+                return res.status(400).json({ "message": "Email atau Password Salah" });
             }
         } catch (error) {
-            res.status(500).json({ "message": error });
+            return res.status(500).json({ "message": error });
         }
     }
 }

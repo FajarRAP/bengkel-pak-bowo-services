@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const invoiceSchema = new mongoose.Schema({
     nama_pelanggan: String,
-    barangs: [
+    services: [
         {
             nama: String,
             harga: Number,
