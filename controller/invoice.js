@@ -5,20 +5,18 @@ class InvoiceController {
         const data = new invoiceModel(req.body);
 
         if (data.services.length == 0) {
-            res.status(400).json({
+            return res.status(400).json({
                 statusCode: 400,
                 message: 'Jasa Tidak Boleh Kosong',
             });
-            return;
         }
 
         try {
             await data.save();
-            res.status(201).json({
+            return res.status(201).json({
                 statusCode: 201,
                 message: 'Sukses',
             });
-            concole.log("Data Created");
         } catch (error) {
             console.log(error.errors);
         }
@@ -27,8 +25,7 @@ class InvoiceController {
     readData = async (req, res) => {
         try {
             const datas = await invoiceModel.find();
-            res.status(200).json(datas);
-            console.log(`Data Readed ${Date.now()}`);
+            return res.status(200).json(datas);
         } catch (error) {
             console.log(error);
         }
