@@ -1,8 +1,9 @@
-const dotenv = require('dotenv');
-const express = require('express');
-const mongoose = require('mongoose');
-const invoiceController = require('../controller/invoice');
+const dotenv = require("dotenv");
+const express = require("express");
+const mongoose = require("mongoose");
+const invoiceController = require("../controller/invoice");
 const authController = require("../controller/auth");
+const verifyToken = require("../middlewares/verifyToken");
 
 const app = express().use(express.json());
 
@@ -13,14 +14,14 @@ mongoose.connect(process.env.MONGODB_URI)
 const PORT = process.env.PORT;
 
 // Invoice
-app.post('/invoice', invoiceController.createData);
-app.get('/invoice', invoiceController.readData);
+app.post("/invoice", verifyToken, invoiceController.createData);
+app.get("/invoice", verifyToken, invoiceController.readData);
 
 // Auth
-app.post('/register', authController.registerUser);
-app.post('/login', authController.loginUser);
+app.post("/register", authController.registerUser);
+app.post("/login", authController.loginUser);
 
-app.get('/', (req, res) => { res.send('Bengkel Pak Bowo Services'); });
+app.get("/", (req, res) => { res.send("Bengkel Pak Bowo Services"); });
 
 app.listen(PORT, () => { console.log(`Connected on Port ${PORT}`); });
 
