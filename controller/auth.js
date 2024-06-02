@@ -39,8 +39,8 @@ class AuthController {
                     message: getMessage('username') && getMessage('password') ? [
                         getMessage('username'), getMessage('password')
                     ] :
-                        getMessage('username') ? getMessage('username') :
-                            getMessage('password') ? getMessage('password') : '',
+                        getMessage('username') ? [getMessage('username')] :
+                            getMessage('password') ? [getMessage('password')] : '',
                 });
             }
 
