@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const invoiceController = require("../controller/invoice");
 const authController = require("../controller/auth");
+const queueController = require("../controller/queue");
 const verifyToken = require("../middlewares/verifyToken");
 
 const app = express().use(express.json());
@@ -14,13 +15,21 @@ mongoose.connect(process.env.MONGODB_URI)
 const PORT = process.env.PORT;
 
 // Invoice
-app.post("/invoice", verifyToken, invoiceController.createData);
+app.post("/invoice/:username", verifyToken, invoiceController.createData);
 app.get("/invoice", verifyToken, invoiceController.readData);
+app.get("/invoice/:username", verifyToken, invoiceController.readDataByUser);
+
+// Queue
+app.post("/queue", verifyToken, queueController.pickQueue);
+app.get("/queue", verifyToken, queueController.getQueueToday);
+app.get("/queueNum", verifyToken, queueController.getQueueNumToday);
+app.get("/queueMe/:username", verifyToken, queueController.getMyQueueToday);
 
 // Auth
 app.post("/register", authController.registerUser);
 app.post("/login", authController.loginUser);
 
+// Home
 app.get("/", (req, res) => { res.send("Bengkel Pak Bowo Services"); });
 
 app.listen(PORT, () => { console.log(`Connected on Port ${PORT}`); });

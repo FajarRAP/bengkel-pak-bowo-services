@@ -4,31 +4,48 @@ const jwt = require("jsonwebtoken");
 
 class AuthController {
     registerUser = async (req, res) => {
-        const { name, email, password } = req.body;
+        const { name, username, password } = req.body;
 
         try {
-            if (!name.trim() || !email.trim() || !password.trim()) {
+            if (!name.trim() || !username.trim() || !password.trim()) {
                 return res.status(400).json({
                     statusCode: 400,
-                    message: "Tidak Boleh Ada Form Yang Kosong",
+                    message: ["Tidak Boleh Ada Form Yang Kosong"],
                 });
             }
 
-            const existingEmail = await userModel.findOne({ email });
-            if (existingEmail) {
-                return res.status(400).json({
-                    statusCode: 400,
-                    message: "Email Sudah Terdaftar"
+            const existingUser = await userModel.findOne({ username });
+            if (existingUser) {
+                return res.status(409).json({
+                    statusCode: 409,
+                    message: "Pengguna Sudah Terdaftar"
                 });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
             const user = new userModel({
                 name,
-                email,
+                username,
+                password,
                 role: 0,
-                password: hashedPassword,
             });
+
+            const err = user.validateSync();
+
+            if (err) {
+                const getMessage = (key) => err.errors[key]?.message;
+                return res.status(400).json({
+                    statusCode: 400,
+                    message: getMessage('username') && getMessage('password') ? [
+                        getMessage('username'), getMessage('password')
+                    ] :
+                        getMessage('username') ? getMessage('username') :
+                            getMessage('password') ? getMessage('password') : '',
+                });
+            }
+
+            user.password = hashedPassword;
+
             await user.save();
             return res.status(201).json({
                 statusCode: 201,
@@ -44,8 +61,9 @@ class AuthController {
     }
 
     loginUser = async (req, res) => {
-        const { email, password } = req.body;
-        const user = await userModel.findOne({ email });
+        const { username, password } = req.body;
+
+        const user = await userModel.findOne({ username });
         if (!user) {
             return res.status(404).json({
                 statusCode: 404,
@@ -55,15 +73,15 @@ class AuthController {
         try {
             const comparePassword = await bcrypt.compare(password, user.password);
             if (!comparePassword) {
-                return res.status(400).json({
-                    statusCode: 400,
-                    message: "Email atau Password Salah"
+                return res.status(401).json({
+                    statusCode: 401,
+                    message: "Username atau Password Salah"
                 });
             }
 
             const token = jwt.sign({
                 name: user.name,
-                email: user.email,
+                username: user.username,
                 role: user.role,
             }, process.env.SECRET_KEY);
 
