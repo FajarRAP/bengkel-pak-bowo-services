@@ -1,55 +1,88 @@
 const queue = require("../models/queue");
+const user = require("../models/user");
 
 class QueueController {
     splitDate = (date) => date.toISOString().split("T")[0];
 
     pickQueue = async (req, res) => {
-        const { username } = req.body;
+        const { username, name } = req.body;
 
-        const newestQueue = await queue.find().sort({ issued_at: -1 }).limit(1);
-        // console.log(newestQueue[0].issued_at);
-        // console.log(new Date().getUTCMinutes());
-        // console.log(new Date(Math.abs(newestQueue[0].issued_at - new Date())));
+        const newestQueue = (await queue.find().sort({ issued_at: -1 }).limit(1))[0];
+        const todayDate = new Date();
 
-        // return res.send('halo');
         try {
-            if (newestQueue.length !== 0) {
-                const queueNumber = newestQueue[0].queue_no;
-                const newestDate = this.splitDate(newestQueue[0].issued_at);
-                const todayDate = this.splitDate(new Date());
+            // Jam buka dan tutup adalah hasil -1, jadi jam aslinya +1
+            const openHour = 7; // Jam Buka
+            const closeHour = 16; // Jam Tutup
+            const hour = new Date().getHours(); // Jam Sekarang
+            // const hour = 9; // Jam test
 
-                if (newestDate !== todayDate) {
+            // Jam tutup adalah jam 17, maka antrian terakhir yang diterima adalah jam 15:59
+            if (hour > closeHour) {
+                return res.status(429).json({
+                    statusCode: 429,
+                    message: "Antrian Sudah Ditutup, Silakan Coba Lagi Besok",
+                });
+            } else if (hour < openHour) {
+                return res.status(423).json({
+                    statusCode: 423,
+                    message: "Antrian Belum Dibuka, Silakan Tunggu Jam Buka",
+                });
+            }
+
+            if (newestQueue) {
+                // Hari yang baru dan lebih dari jam 7:59
+                if (this.splitDate(newestQueue.issued_at) !== this.splitDate(todayDate)) {
                     await queue.deleteMany({ queue_no: { $gte: 0 } });
+
+                    await queue({
+                        queue_no: 1,
+                        username,
+                        name,
+                        issued_at: new Date(),
+                        accepted: false,
+                    }).save();
+
+                    return res.status(201).json({
+                        statusCode: 201,
+                        message: "Berhasil Mengambil Antrian",
+                    });
                 }
 
-                if (username === newestQueue[0].username) {
-                    // const difference = new Date(Math.abs(newestQueue[0].issued_at - new Date()));
-
-                    // console.log(difference.getDay());
-                    // console.log(new Date().getDay());
-                    // // const minuteCondition = difference.getUTCMinutes() < 2;
-                    if (!newestQueue[0].accepted) {
+                // User yang sama mencoba mengambil antrian lagi, padahal yang sebelumnya belum dilayani
+                if (username === newestQueue.username) {
+                    if (!newestQueue.accepted) {
                         return res.status(400).json({
                             statusCode: 400,
                             message: 'Antrian Belum Tuntas'
                         })
                     }
-                    // console.log(difference.getUTCMinutes());
+                } else {
+                    const newestQueueNum = newestQueue.queue_no;
+                    await queue({
+                        queue_no: newestQueueNum + 1,
+                        username,
+                        name,
+                        issued_at: new Date(),
+                        accepted: false,
+                    }).save();
+
+                    return res.status(201).json({
+                        statusCode: 201,
+                        message: "Berhasil Mengambil Antrian",
+                    });
                 }
-                await queue({
-                    queue_no: newestDate === todayDate ? queueNumber + 1 : 1,
-                    username,
-                    issued_at: new Date(),
-                    accepted: false,
-                }).save();
-            } else {
-                await queue({
-                    queue_no: 1,
-                    username,
-                    issued_at: new Date(),
-                    accepted: false,
-                }).save();
             }
+
+            // Beneran baru ngambil banget (belum ada di database)
+            await queue({
+                queue_no: 1,
+                username,
+                name,
+                issued_at: new Date(),
+                accepted: false,
+            }).save();
+
             return res.status(201).json({
                 statusCode: 201,
                 message: "Berhasil Mengambil Antrian",
@@ -65,14 +98,14 @@ class QueueController {
     }
     getQueueNumToday = async (req, res) => {
         try {
-            const newestQueue = await queue.find().sort({ issued_at: -1 }).limit(1);
-            if (newestQueue.length !== 0) {
-                const isDifferentDate = this.splitDate(newestQueue[0].issued_at) === this.splitDate(new Date());
-                console.log(newestQueue);
-                console.log(isDifferentDate);
+            const newestQueue = (await queue.find().sort({ issued_at: -1 }).limit(1))[0];
+            if (newestQueue) {
+                const newestQueueDate = this.splitDate(newestQueue.issued_at);
+                const todayDate = this.splitDate(new Date());
+                const isDifferentDate = newestQueueDate === todayDate;
                 return res.status(200).json({
                     statusCode: 200,
-                    message: isDifferentDate ? newestQueue[0].queue_no : 1,
+                    message: isDifferentDate ? newestQueue.queue_no : 0,
                 });
 
             }
@@ -90,7 +123,9 @@ class QueueController {
     }
     getQueueToday = async (req, res) => {
         try {
-            const datas = await queue.find({ issued_at: { $gte: new Date(this.splitDate(new Date())) } });
+            const todayDateFormatted = new Date(this.splitDate(new Date()));
+
+            const datas = await queue.find({ issued_at: { $gte: todayDateFormatted } });
             return res.status(200).json({
                 statusCode: 200,
                 message: datas.length === 0 ? 'Belum Ada Transaksi' : 'Sukses',
@@ -105,15 +140,13 @@ class QueueController {
         }
     }
     getMyQueueToday = async (req, res) => {
-        const username = req.params.username;
-        // const user = await user.findOne({ username });
         try {
             const username = req.params.username;
             const data = await queue.findOne({ username, accepted: false });
             return res.status(200).json({
                 statusCode: 200,
                 message: 'Sukses',
-                data
+                data: data ? data : 'Belum Mengambil Antrian'
             });
 
         } catch (error) {

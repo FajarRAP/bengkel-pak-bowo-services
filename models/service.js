@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const serviceSchema = new mongoose.Schema({
-    nama: String,
-    harga: Number,
+    name: String,
+    price: Number,
 });
 
 module.exports = serviceSchema;

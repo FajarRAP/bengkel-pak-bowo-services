@@ -2,9 +2,11 @@ const mongoose = require('mongoose');
 const serviceSchema = require('./service');
 
 const invoiceSchema = new mongoose.Schema({
-    nama_pelanggan: String,
-    services: [serviceSchema],
-    bought_by: String,
+    customer: {
+        username: String,
+        name: String,
+    },
+    service: serviceSchema,
     bought_at: Date
 });
 

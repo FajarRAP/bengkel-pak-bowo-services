@@ -9,13 +9,13 @@ const verifyToken = require("../middlewares/verifyToken");
 const app = express().use(express.json());
 
 dotenv.config();
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_LOCAL)
     .then(() => { console.log("Successfully Connected to MongoDB Atlas"); })
     .catch(() => { console.log("Something Went Wrong"); });
 const PORT = process.env.PORT;
 
 // Invoice
-app.post("/invoice/:username", verifyToken, invoiceController.createData);
+app.post("/invoice", verifyToken, invoiceController.createData);
 app.get("/invoice", verifyToken, invoiceController.readData);
 app.get("/invoice/:username", verifyToken, invoiceController.readDataByUser);
 
