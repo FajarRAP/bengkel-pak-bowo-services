@@ -51,12 +51,27 @@ class QueueController {
 
                 // User yang sama mencoba mengambil antrian lagi, padahal yang sebelumnya belum dilayani
                 if (username === newestQueue.username) {
+                    const newestQueueNum = newestQueue.queue_no;
                     if (!newestQueue.accepted) {
                         return res.status(400).json({
                             statusCode: 400,
                             message: 'Antrian Belum Tuntas'
                         })
                     }
+
+                    await queue({
+                        queue_no: newestQueueNum + 1,
+                        username,
+                        name,
+                        issued_at: new Date(),
+                        accepted: false,
+                    }).save();
+
+                    return res.status(201).json({
+                        statusCode: 201,
+                        message: "Berhasil Mengambil Antrian",
+                    });
+
                 } else {
                     const newestQueueNum = newestQueue.queue_no;
                     await queue({

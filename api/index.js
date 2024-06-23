@@ -15,9 +15,11 @@ mongoose.connect(process.env.MONGODB_LOCAL)
 const PORT = process.env.PORT;
 
 // Invoice
-app.post("/invoice", verifyToken, invoiceController.createData);
-app.get("/invoice", verifyToken, invoiceController.readData);
-app.get("/invoice/:username", verifyToken, invoiceController.readDataByUser);
+app.post("/invoice", verifyToken, invoiceController.createInvoice);
+app.get("/invoice", verifyToken, invoiceController.getInvoices);
+app.get("/invoice/:username", verifyToken, invoiceController.getInvoicesByUsername);
+app.get("/expense/:username/month/:month", verifyToken, invoiceController.getExpenseAtMonth);
+app.get("/income", verifyToken, invoiceController.getIncome);
 
 // Queue
 app.post("/queue", verifyToken, queueController.pickQueue);
