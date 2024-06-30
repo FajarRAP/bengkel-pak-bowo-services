@@ -3,19 +3,31 @@ const user = require("../models/user");
 
 class QueueController {
     splitDate = (date) => date.toISOString().split("T")[0];
+    addHours = (date, hour = 7) => {
+        date.setHours(date.getHours() + hour);
+        return date;
+    };
 
     pickQueue = async (req, res) => {
         const { username, name } = req.body;
 
         const newestQueue = (await queue.find().sort({ issued_at: -1 }).limit(1))[0];
-        const todayDate = new Date();
+        const todayDate = this.addHours(new Date());
+
+        if (!username || !name) {
+            return res.status(401).json({
+                statusCode: 401,
+                message: "Username/Nama Harus Diisi"
+            });
+        }
 
         try {
             // Jam buka dan tutup adalah hasil -1, jadi jam aslinya +1
             const openHour = 7; // Jam Buka
             const closeHour = 16; // Jam Tutup
-            const hour = new Date().getHours(); // Jam Sekarang
+            const hour = todayDate.getHours(); // Jam Sekarang
             // const hour = 9; // Jam test
+
 
             // Jam tutup adalah jam 17, maka antrian terakhir yang diterima adalah jam 15:59
             if (hour > closeHour) {
@@ -39,7 +51,7 @@ class QueueController {
                         queue_no: 1,
                         username,
                         name,
-                        issued_at: new Date(),
+                        issued_at: todayDate,
                         accepted: false,
                     }).save();
 
@@ -55,7 +67,7 @@ class QueueController {
                     if (!newestQueue.accepted) {
                         return res.status(400).json({
                             statusCode: 400,
-                            message: 'Antrian Belum Tuntas'
+                            message: "Antrian Belum Tuntas",
                         })
                     }
 
@@ -63,7 +75,7 @@ class QueueController {
                         queue_no: newestQueueNum + 1,
                         username,
                         name,
-                        issued_at: new Date(),
+                        issued_at: todayDate,
                         accepted: false,
                     }).save();
 
@@ -78,7 +90,7 @@ class QueueController {
                         queue_no: newestQueueNum + 1,
                         username,
                         name,
-                        issued_at: new Date(),
+                        issued_at: todayDate,
                         accepted: false,
                     }).save();
 
@@ -94,7 +106,7 @@ class QueueController {
                 queue_no: 1,
                 username,
                 name,
-                issued_at: new Date(),
+                issued_at: todayDate,
                 accepted: false,
             }).save();
 
@@ -111,12 +123,13 @@ class QueueController {
             });
         }
     }
+
     getQueueNumToday = async (req, res) => {
         try {
             const newestQueue = (await queue.find().sort({ issued_at: -1 }).limit(1))[0];
             if (newestQueue) {
                 const newestQueueDate = this.splitDate(newestQueue.issued_at);
-                const todayDate = this.splitDate(new Date());
+                const todayDate = this.splitDate(this.addHours(new Date()));
                 const isDifferentDate = newestQueueDate === todayDate;
                 return res.status(200).json({
                     statusCode: 200,
@@ -138,7 +151,8 @@ class QueueController {
     }
     getQueueToday = async (req, res) => {
         try {
-            const todayDateFormatted = new Date(this.splitDate(new Date()));
+            const todayDate = this.addHours(new Date());
+            const todayDateFormatted = this.addHours(new Date(this.splitDate(todayDate)));
 
             const datas = await queue.find({ issued_at: { $gte: todayDateFormatted } });
             return res.status(200).json({
