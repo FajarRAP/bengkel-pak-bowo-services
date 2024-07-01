@@ -82,10 +82,12 @@ class InvoiceController {
         }
     };
 
-    getIncome = async (req, res) => {
+    getIncomeAtMonth = async (req, res) => {
+        const { month } = req.params;
         try {
             const datas = await invoiceModel.find();
-            const income = datas.reduce((total, element) => total += element.service.price, 0);
+            // const income = datas.reduce((total, element) => total += element.service.price, 0);
+            const income = datas.reduce((total, element) => element.bought_at.getMonth() == month ? total += element.service.price : total, 0);
 
             return res.status(200).json({
                 statusCode: 200,

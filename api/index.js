@@ -19,7 +19,7 @@ app.post("/invoice", verifyToken, invoiceController.createInvoice);
 app.get("/invoice", verifyToken, invoiceController.getInvoices);
 app.get("/invoice/:username", verifyToken, invoiceController.getInvoicesByUsername);
 app.get("/expense/:username/month/:month", verifyToken, invoiceController.getExpenseAtMonth);
-app.get("/income", verifyToken, invoiceController.getIncome);
+app.get("/income/:month", verifyToken, invoiceController.getIncomeAtMonth);
 
 // Queue
 app.post("/queue", verifyToken, queueController.pickQueue);
