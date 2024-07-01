@@ -13,9 +13,9 @@ class InvoiceController {
                 });
             }
 
-            await data.save();
+            await queueModel.updateMany({ username: data.customer.username }, { accepted: true })
 
-            await queueModel.findOneAndUpdate({ username: data.customer.username }, { accepted: true });
+            await data.save();
 
             return res.status(201).json({
                 statusCode: 201,
